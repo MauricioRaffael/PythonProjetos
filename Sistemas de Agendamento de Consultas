@@ -1,0 +1,207 @@
+from tkinter import *
+import psycopg2
+
+root = Tk()
+root.title("Clínica Odontológica")
+root.geometry("298x400")
+
+conn = ''
+conn = psycopg2.connect(database='consultorio',
+                        user='postgres',
+                        password='mauricio123',
+                        host='localhost')
+
+cursor = conn.cursor()
+
+
+def update():
+    conn = psycopg2.connect(database='consultorio',
+                            user='postgres',
+                            password='mauricio123',
+                            host='localhost')
+
+    cursor = conn.cursor()
+
+    sql = """UPDATE cliente
+             SET idcliente = '{}', dia = '{}', horario = '{}', mes = '{}'
+             WHERE idcliente = '{}'"""
+
+    cursor.execute(sql.format(entryId_Edit.get(), entryDia_Edit.get(), entryHorario_Edit.get(), entryMes_Edit.get(),entryDelete.get()))
+
+    conn.commit()
+
+    conn.close()
+
+    edit.destroy()
+
+
+def editar():
+    global edit
+    edit = Tk()
+    edit.title("Editar Registro")
+    edit.geometry("298x400")
+
+    conn = psycopg2.connect(database='consultorio',
+                            user='postgres',
+                            password='mauricio123',
+                            host='localhost')
+
+    cursor = conn.cursor()
+
+    sql = "SELECT * FROM cliente WHERE idcliente = '{}'"
+    cursor.execute(sql.format(entryDelete.get()))
+    registros = cursor.fetchall()
+
+    labelId_Edit = Label(edit, text='Id do Cliente')
+    labelId_Edit.grid(row=0, column=0)
+
+    labelDia_Edit = Label(edit, text='Dia da Consulta')
+    labelDia_Edit.grid(row=1, column=0)
+
+    labelHorario_Edit = Label(edit, text='Horário da Consulta')
+    labelHorario_Edit.grid(row=2, column=0)
+
+    labelMes_Edit = Label(edit, text='Mes da Consulta')
+    labelMes_Edit.grid(row=3, column=0)
+
+    global entryId_Edit
+    global entryDia_Edit
+    global entryHorario_Edit
+    global entryMes_Edit
+
+    entryId_Edit = Entry(edit, width=30)
+    entryId_Edit.grid(row=0, column=1)
+
+    entryDia_Edit = Entry(edit, width=30)
+    entryDia_Edit.grid(row=1, column=1)
+
+    entryHorario_Edit = Entry(edit, width=30)
+    entryHorario_Edit.grid(row=2, column=1)
+
+    entryMes_Edit = Entry(edit, width=30)
+    entryMes_Edit.grid(row=3, column=1)
+
+    for registro in registros:
+        entryId_Edit.insert(0, registro[0])
+        entryDia_Edit.insert(0, registro[10])
+        entryHorario_Edit.insert(0, registro[11])
+        entryMes_Edit.insert(0, registro[12])
+
+    salvarButton = Button(edit, text='Salvar Registro', command=update)
+    salvarButton.grid(row=4, column=0, columnspan=2, pady=5, ipadx=105)
+
+
+def delete():
+    conn = psycopg2.connect(database='consultorio',
+                            user='postgres',
+                            password='mauricio123',
+                            host='localhost')
+
+    cursor = conn.cursor()
+
+    sql = """DELETE FROM cliente WHERE idcliente = '{}'"""
+
+    cursor.execute(sql.format(entryDelete.get()))
+
+    conn.commit()
+
+    conn.close()
+
+
+def insert():
+    conn = psycopg2.connect(database='consultorio',
+                            user='postgres',
+                            password='mauricio123',
+                            host='localhost')
+
+    cursor = conn.cursor()
+
+    sql = """INSERT INTO cliente(idcliente, dia, horario, mes)
+             values('{}', '{}', '{}', '{}')"""
+
+    cursor.execute(sql.format(entryId.get(), entryDia.get(), entryHorario.get(), entryMes.get()))
+
+    conn.commit()
+
+    conn.close()
+
+    entryId.delete(0, END)
+    entryDia.delete(0, END)
+    entryHorario.delete(0, END)
+    entryMes.delete(0, END)
+
+
+def select():
+    conn = psycopg2.connect(database='consultorio',
+                            user='postgres',
+                            password='mauricio123',
+                            host='localhost')
+
+    cursor = conn.cursor()
+
+    sql = "SELECT * FROM cliente"
+    cursor.execute(sql)
+    registros = cursor.fetchall()
+
+    registrar = ''
+    for registro in registros:
+        registrar += str(registro[0]) + " " + "\t" + str(registro[10]) + " " + "\t" + str(registro[11]) + " " + "\t" + str(registro[12]) + "\n"
+
+    selectLabel = Label(root, text=registrar)
+    selectLabel.grid(row=10, column=0, columnspan=2, pady=10)
+
+    conn.commit()
+
+    conn.close()
+
+
+labelId = Label(root, text='Id do Cliente')
+labelId.grid(row=0, column=0)
+
+labelDia = Label(root, text='Dia da Consulta')
+labelDia.grid(row=1, column=0)
+
+labelHorario = Label(root, text='Horário da Consulta')
+labelHorario.grid(row=2, column=0)
+
+labelMes = Label(root, text='Mes da Consulta')
+labelMes.grid(row=3, column=0)
+
+labelDelete = Label(root, text='Selecionar ID')
+labelDelete.grid(row=6, column=0, pady=5)
+
+
+entryId = Entry(root, width=30)
+entryId.grid(row=0, column=1)
+
+entryDia = Entry(root, width=30)
+entryDia.grid(row=1, column=1)
+
+entryHorario = Entry(root, width=30)
+entryHorario.grid(row=2, column=1)
+
+entryMes = Entry(root, width=30)
+entryMes.grid(row=3, column=1)
+
+entryDelete = Entry(root, width=30)
+entryDelete.grid(row=6, column=1)
+
+
+buttonInserir = Button(root, text='Adicionar os Registros', command=insert)
+buttonInserir.grid(row=4, column=0, columnspan=2, pady=5, ipadx=85)
+
+buttonSelecionar = Button(root, text='Mostrar os Registros', command=select)
+buttonSelecionar.grid(row=5, column=0, columnspan=2, pady=5, ipadx=90)
+
+buttonDeletar = Button(root, text='Excluir Registro', command=delete)
+buttonDeletar.grid(row=7, column=0, columnspan=2, pady=5, ipadx=103)
+
+buttonEditar = Button(root, text='Atualizar Registros', command=editar)
+buttonEditar.grid(row=9, column=0, columnspan=2, pady=5, ipadx=95)
+
+
+conn.commit()
+
+conn.close()
+
+root.mainloop()
